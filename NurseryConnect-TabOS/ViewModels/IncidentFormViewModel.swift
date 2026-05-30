@@ -31,6 +31,8 @@ final class IncidentFormViewModel {
     var immediateActionTaken: String = ""
     var witnesses: String = ""
     var bodyMapRegions: Set<BodyMapRegion> = []
+    /// PencilKit signature PNG — the keyworker's sign-off (required to submit).
+    var signatureData: Data?
 
     // Submission state
     var submissionState: SubmissionState = .idle
@@ -46,7 +48,9 @@ final class IncidentFormViewModel {
     }
 
     var isValid: Bool {
-        !descriptionText.trimmed.isEmpty && !immediateActionTaken.trimmed.isEmpty
+        !descriptionText.trimmed.isEmpty
+            && !immediateActionTaken.trimmed.isEmpty
+            && signatureData != nil
     }
 
     func toggleRegion(_ region: BodyMapRegion) {
@@ -71,7 +75,8 @@ final class IncidentFormViewModel {
             immediateActionTaken: immediateActionTaken.trimmed,
             witnesses: witnesses.trimmed,
             bodyMapRegions: Array(bodyMapRegions),
-            loggedByKeyworker: SeedDataService.currentKeyworker
+            loggedByKeyworker: SeedDataService.currentKeyworker,
+            signatureImageData: signatureData
         )
 
         do {

@@ -30,6 +30,9 @@ final class ChildRosterViewModel {
     /// Currently selected child id (drives the NavigationSplitView detail column).
     var selectedChildID: Child.ID?
 
+    /// Live roster search text (⌘F focuses the field, see RootSplitView).
+    var searchText: String = ""
+
     private let service: ChildRosterService
     private let keyworker: String
 
@@ -41,6 +44,16 @@ final class ChildRosterViewModel {
     var selectedChild: Child? {
         guard let id = selectedChildID else { return nil }
         return children.first { $0.id == id }
+    }
+
+    /// Children filtered by the search text (name or room), case-insensitive.
+    var filteredChildren: [Child] {
+        let query = searchText.trimmed
+        guard !query.isEmpty else { return children }
+        return children.filter {
+            $0.fullName.localizedCaseInsensitiveContains(query)
+                || $0.roomName.localizedCaseInsensitiveContains(query)
+        }
     }
 
     func load() {
