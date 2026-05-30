@@ -20,6 +20,7 @@ struct RootSplitView: View {
 
     @State private var section: SidebarSection? = .children
     @State private var roster: ChildRosterViewModel?
+    @State private var incidents: IncidentHistoryViewModel?
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
 
     var body: some View {
@@ -32,10 +33,14 @@ struct RootSplitView: View {
         }
         .tint(AppColors.brand)
         .task {
-            guard roster == nil else { return }
-            let vm = ChildRosterViewModel(service: ChildRosterService(context: context))
-            vm.load()
-            roster = vm
+            if roster == nil {
+                let vm = ChildRosterViewModel(service: ChildRosterService(context: context))
+                vm.load()
+                roster = vm
+            }
+            if incidents == nil {
+                incidents = IncidentHistoryViewModel(service: IncidentService(context: context))
+            }
         }
     }
 
@@ -92,9 +97,11 @@ struct RootSplitView: View {
                            title: "Development & Wellbeing Insights",
                            message: "Swift Charts trends arrive in Phase 6.")
         case .incidents:
-            EmptyStateView(icon: AppIcons.incidents,
-                           title: "Incident Reports",
-                           message: "The incident history & audit trail arrive in Phase 4.")
+            if let incidents {
+                IncidentHistoryView(viewModel: incidents)
+            } else {
+                LoadingView()
+            }
         }
     }
 
@@ -131,12 +138,28 @@ struct RootSplitView: View {
 
     @ViewBuilder
     private var detailColumn: some View {
-        if section == .children, let child = roster?.selectedChild {
-            ChildDetailPreview(child: child)
-        } else {
-            EmptyStateView(icon: AppIcons.children,
-                           title: "Select a child",
-                           message: "Pick a child from the roster to see their day.")
+        switch section {
+        case .children, .none:
+            if let child = roster?.selectedChild {
+                ChildDetailView(child: child)
+                    .id(child.id)
+            } else {
+                EmptyStateView(icon: AppIcons.children,
+                               title: "Select a child",
+                               message: "Pick a child from the roster to see their day.")
+            }
+        case .incidents:
+            if let incident = incidents?.selected {
+                IncidentDetailView(incident: incident)
+            } else {
+                EmptyStateView(icon: AppIcons.incidents,
+                               title: "Select an incident",
+                               message: "Pick a report from the list to review it.")
+            }
+        case .insights:
+            EmptyStateView(icon: AppIcons.insights,
+                           title: "Insights",
+                           message: "Charts arrive in Phase 6.")
         }
     }
 
@@ -170,74 +193,6 @@ private struct ChildRow: View {
         }
         .padding(.vertical, AppSpacing.xs)
         .accessibilityElement(children: .combine)
-    }
-}
-
-// MARK: - Detail preview (placeholder for the Phase 4 ChildDetailView)
-
-private struct ChildDetailPreview: View {
-    let child: Child
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                HStack(spacing: AppSpacing.md) {
-                    ChildAvatar(initials: child.initials, seed: child.avatarSeed, size: 72)
-                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                        Text(child.fullName).font(AppTypography.largeTitle)
-                        Text("\(child.ageDescription) · \(child.roomName) Room")
-                            .font(AppTypography.body)
-                            .foregroundStyle(AppColors.textSecondary)
-                    }
-                    Spacer()
-                }
-
-                if child.hasAllergies || !child.dietaryNotes.isEmpty || !child.photographyConsent {
-                    FlowChips(child: child)
-                }
-
-                VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                    Text("Day view")
-                        .sectionHeaderStyle()
-                    Text("The diary timeline, quick-log actions and the “Report Incident” flow land here in Phase 4.")
-                        .font(AppTypography.body)
-                        .foregroundStyle(AppColors.textSecondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .cardStyle()
-
-                Spacer(minLength: 0)
-            }
-            .padding(AppSpacing.lg)
-        }
-        .background(AppColors.background)
-        .navigationTitle(child.firstName)
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-private struct FlowChips: View {
-    let child: Child
-
-    var body: some View {
-        ViewThatFits(in: .horizontal) {
-            chips
-            ScrollView(.horizontal, showsIndicators: false) { chips }
-        }
-    }
-
-    private var chips: some View {
-        HStack(spacing: AppSpacing.sm) {
-            ForEach(child.allergies, id: \.self) { allergen in
-                Chip(text: allergen, systemImage: AppIcons.allergy, tint: AppColors.danger)
-            }
-            if !child.dietaryNotes.isEmpty {
-                Chip(text: child.dietaryNotes, systemImage: AppIcons.dietary, tint: AppColors.warning)
-            }
-            if !child.photographyConsent {
-                Chip(text: "No photography", systemImage: AppIcons.noPhoto, tint: AppColors.danger)
-            }
-        }
     }
 }
 
