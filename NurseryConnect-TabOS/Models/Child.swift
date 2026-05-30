@@ -7,8 +7,6 @@
 //  GDPR Art. 5(1)(c) data minimisation: a Child is only ever loaded for the
 //  keyworker it is assigned to — see ChildRosterService.fetchAssignedChildren.
 //
-//  NOTE: In Phase 3 this is the minimal display model. Phase 4 adds the
-//  cascade-delete relationships to DiaryEntry and IncidentReport.
 //
 
 import Foundation
@@ -37,6 +35,13 @@ final class Child {
 
     /// Optional avatar tint seed so cards look distinct without real photos.
     var avatarSeed: Int
+
+    /// Cascade delete: removing a Child removes its diary + incident records.
+    @Relationship(deleteRule: .cascade, inverse: \DiaryEntry.child)
+    var diaryEntries: [DiaryEntry] = []
+
+    @Relationship(deleteRule: .cascade, inverse: \IncidentReport.child)
+    var incidentReports: [IncidentReport] = []
 
     init(
         id: UUID = UUID(),
