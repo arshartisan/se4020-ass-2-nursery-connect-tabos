@@ -15,10 +15,11 @@ import SwiftData
 
 enum ModelContainerProvider {
 
-    /// Every @Model type in the app. Phase 4 extends this with
-    /// DiaryEntry.self and IncidentReport.self.
+    /// Every @Model type in the app.
     static let schema = Schema([
-        Child.self
+        Child.self,
+        DiaryEntry.self,
+        IncidentReport.self
     ])
 
     /// On-disk container for the running app.
