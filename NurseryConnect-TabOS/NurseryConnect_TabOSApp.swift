@@ -2,7 +2,9 @@
 //  NurseryConnect_TabOSApp.swift
 //  NurseryConnect-TabOS
 //
-//  Created by FocalDive on 2026-05-30.
+//  iPadOS extension of the Assignment 1 NurseryConnect Keyworker app.
+//  Launches straight into its main functionality — no login / auth
+//  (assignment brief rule).
 //
 
 import SwiftUI
@@ -10,23 +12,20 @@ import SwiftData
 
 @main
 struct NurseryConnect_TabOSApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
+    /// The single production SwiftData container, attached to the whole
+    /// view hierarchy via `.modelContainer(_:)`.
+    private let modelContainer = ModelContainerProvider.makeProductionContainer()
+
+    init() {
+        // Seed the roster on first launch so every screen is non-empty.
+        SeedDataService.seedIfNeeded(modelContainer.mainContext)
+    }
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootSplitView()
         }
-        .modelContainer(sharedModelContainer)
+        .modelContainer(modelContainer)
     }
 }
