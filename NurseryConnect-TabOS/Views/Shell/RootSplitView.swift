@@ -21,6 +21,7 @@ struct RootSplitView: View {
     @State private var section: SidebarSection? = .children
     @State private var roster: ChildRosterViewModel?
     @State private var incidents: IncidentHistoryViewModel?
+    @State private var insights: InsightsViewModel?
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
     @FocusState private var searchFocused: Bool
 
@@ -50,6 +51,12 @@ struct RootSplitView: View {
             }
             if incidents == nil {
                 incidents = IncidentHistoryViewModel(service: IncidentService(context: context))
+            }
+            if insights == nil {
+                insights = InsightsViewModel(
+                    rosterService: ChildRosterService(context: context),
+                    insightsService: InsightsService(context: context)
+                )
             }
         }
     }
@@ -103,9 +110,11 @@ struct RootSplitView: View {
         case .children, .none:
             childListColumn
         case .insights:
-            EmptyStateView(icon: AppIcons.insights,
-                           title: "Development & Wellbeing Insights",
-                           message: "Swift Charts trends arrive in Phase 6.")
+            if let insights {
+                InsightsScopeList(viewModel: insights)
+            } else {
+                LoadingView()
+            }
         case .incidents:
             if let incidents {
                 IncidentHistoryView(viewModel: incidents)
@@ -175,9 +184,14 @@ struct RootSplitView: View {
                                message: "Pick a report from the list to review it.")
             }
         case .insights:
-            EmptyStateView(icon: AppIcons.insights,
-                           title: "Insights",
-                           message: "Charts arrive in Phase 6.")
+            if let insights, let summary = insights.summary {
+                InsightsDashboardView(summary: summary)
+                    .id(insights.selectedScope)
+            } else {
+                EmptyStateView(icon: AppIcons.insights,
+                               title: "Select a scope",
+                               message: "Pick “All children” or a child to see their trends.")
+            }
         }
     }
 
