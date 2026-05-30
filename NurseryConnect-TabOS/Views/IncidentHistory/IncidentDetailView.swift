@@ -8,6 +8,9 @@
 //
 
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 struct IncidentDetailView: View {
     let incident: IncidentReport
@@ -30,6 +33,8 @@ struct IncidentDetailView: View {
                     field("Injury locations",
                           incident.bodyMapRegions.map(\.title).sorted().joined(separator: ", "))
                 }
+
+                signature
 
                 metadata
             }
@@ -74,6 +79,41 @@ struct IncidentDetailView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .cardStyle()
+    }
+
+    @ViewBuilder
+    private var signature: some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            Text("Keyworker sign-off").sectionHeaderStyle()
+            if let image = signatureImage {
+                image
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity, maxHeight: 120, alignment: .leading)
+                    .accessibilityLabel("Keyworker signature")
+                Text("Signed by \(incident.loggedByKeyworker)")
+                    .font(AppTypography.footnote)
+                    .foregroundStyle(AppColors.textSecondary)
+            } else {
+                Text("No signature on file.")
+                    .font(AppTypography.body)
+                    .foregroundStyle(AppColors.textSecondary)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .cardStyle()
+    }
+
+    /// Decode the stored PNG into a SwiftUI `Image` (UIKit-guarded so SourceKit's
+    /// macOS index stays quiet; the iPad target always has UIKit).
+    private var signatureImage: Image? {
+        #if canImport(UIKit)
+        guard let data = incident.signatureImageData,
+              let uiImage = UIImage(data: data) else { return nil }
+        return Image(uiImage: uiImage)
+        #else
+        return nil
+        #endif
     }
 
     private var metadata: some View {

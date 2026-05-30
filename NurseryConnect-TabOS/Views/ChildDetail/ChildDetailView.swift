@@ -68,6 +68,14 @@ struct ChildDetailView: View {
                 )
             )
         }
+        .background {
+            // ⌘N starts a new diary entry for the visible child (keyboard bonus).
+            Button("New diary entry") {
+                diaryFormVM = vm.makeDiaryFormViewModel(type: .activity)
+            }
+            .keyboardShortcut("n", modifiers: .command)
+            .hidden()
+        }
     }
 
     // MARK: - Header

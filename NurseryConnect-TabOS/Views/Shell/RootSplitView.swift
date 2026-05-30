@@ -22,6 +22,7 @@ struct RootSplitView: View {
     @State private var roster: ChildRosterViewModel?
     @State private var incidents: IncidentHistoryViewModel?
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    @FocusState private var searchFocused: Bool
 
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
@@ -32,6 +33,15 @@ struct RootSplitView: View {
             detailColumn
         }
         .tint(AppColors.brand)
+        .background {
+            // ⌘F focuses the roster search field (hardware-keyboard bonus).
+            Button("Find a child") {
+                section = .children
+                searchFocused = true
+            }
+            .keyboardShortcut("f", modifiers: .command)
+            .hidden()
+        }
         .task {
             if roster == nil {
                 let vm = ChildRosterViewModel(service: ChildRosterService(context: context))
@@ -121,14 +131,22 @@ struct RootSplitView: View {
                     EmptyStateView(icon: AppIcons.empty,
                                    title: "No children assigned",
                                    message: "Seeded children will appear here.")
+                case .loaded where roster.filteredChildren.isEmpty:
+                    EmptyStateView(icon: AppIcons.empty,
+                                   title: "No matches",
+                                   message: "No child matches “\(roster.searchText)”.")
                 case .loaded:
-                    List(roster.children, selection: bindingSelection(roster)) { child in
+                    List(roster.filteredChildren, selection: bindingSelection(roster)) { child in
                         ChildRow(child: child)
                     }
                     .listStyle(.inset)
                 }
             }
             .navigationTitle("Children")
+            .searchable(text: bindingSearch(roster),
+                        placement: .navigationBarDrawer(displayMode: .always),
+                        prompt: "Find a child")
+            .searchFocused($searchFocused)
         } else {
             LoadingView()
         }
@@ -167,6 +185,10 @@ struct RootSplitView: View {
 
     private func bindingSelection(_ vm: ChildRosterViewModel) -> Binding<Child.ID?> {
         Binding(get: { vm.selectedChildID }, set: { vm.selectedChildID = $0 })
+    }
+
+    private func bindingSearch(_ vm: ChildRosterViewModel) -> Binding<String> {
+        Binding(get: { vm.searchText }, set: { vm.searchText = $0 })
     }
 }
 

@@ -27,6 +27,7 @@ struct IncidentFormView: View {
                 bodyMapSection
                 actionSection
                 witnessSection
+                signatureSection
             }
             .navigationTitle("Report Incident")
             .navigationBarTitleDisplayMode(.inline)
@@ -140,6 +141,18 @@ struct IncidentFormView: View {
             TextField("Witnesses (comma separated)", text: $viewModel.witnesses)
         } header: {
             Text("Witnesses").sectionHeaderStyle()
+        }
+    }
+
+    private var signatureSection: some View {
+        Section {
+            SignatureCaptureView(signatureData: $viewModel.signatureData)
+                .padding(.vertical, AppSpacing.xs)
+        } header: {
+            Text("Keyworker sign-off").sectionHeaderStyle()
+        } footer: {
+            Text("Sign with Apple Pencil (or your finger) to attest this record. "
+                 + "A signed report is the human anchor of the safeguarding audit trail.")
         }
     }
 
