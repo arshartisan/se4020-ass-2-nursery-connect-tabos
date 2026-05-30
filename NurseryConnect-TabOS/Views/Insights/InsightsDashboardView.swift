@@ -102,12 +102,15 @@ struct InsightsDashboardView: View {
                     )
                     .interpolationMethod(.catmullRom)
                     .foregroundStyle(AppColors.brand)
+                    .accessibilityHidden(true)
 
                     PointMark(
                         x: .value("Day", point.date, unit: .day),
                         y: .value("Mood", point.value)
                     )
                     .foregroundStyle(AppColors.brand)
+                    .accessibilityLabel(weekday(point.date))
+                    .accessibilityValue("Average mood \(String(format: "%.1f", point.value)) out of 5")
                 }
                 .chartYScale(domain: 1...5)
                 .chartYAxis {
@@ -141,6 +144,8 @@ struct InsightsDashboardView: View {
                     )
                     .foregroundStyle(AppColors.success.gradient)
                     .cornerRadius(4)
+                    .accessibilityLabel(weekday(point.date))
+                    .accessibilityValue("\(Int(point.minutes.rounded())) minutes")
                 }
                 .chartXAxis { dayAxis }
                 .frame(height: 200)
@@ -162,6 +167,8 @@ struct InsightsDashboardView: View {
                     )
                     .foregroundStyle(by: .value("Amount", bar.amount.title))
                     .cornerRadius(4)
+                    .accessibilityLabel(bar.amount.title)
+                    .accessibilityValue("\(bar.count) meal\(bar.count == 1 ? "" : "s")")
                 }
                 .chartForegroundStyleScale(range: mealColors)
                 .chartLegend(.hidden)
@@ -194,6 +201,11 @@ struct InsightsDashboardView: View {
             AxisTick()
             AxisValueLabel(format: .dateTime.weekday(.abbreviated))
         }
+    }
+
+    /// Full weekday name for VoiceOver chart-mark labels.
+    private func weekday(_ date: Date) -> String {
+        date.formatted(.dateTime.weekday(.wide))
     }
 
     private func miniEmpty(_ message: String) -> some View {

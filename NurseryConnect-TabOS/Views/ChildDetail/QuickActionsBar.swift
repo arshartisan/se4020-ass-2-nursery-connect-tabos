@@ -18,10 +18,7 @@ struct QuickActionsBar: View {
             Text("Quick log")
                 .sectionHeaderStyle()
 
-            ViewThatFits(in: .horizontal) {
-                actionRow
-                ScrollView(.horizontal, showsIndicators: false) { actionRow }
-            }
+            actionRow
 
             Button(role: .destructive) {
                 onReportIncident()
@@ -44,9 +41,13 @@ struct QuickActionsBar: View {
                             .font(.title3)
                         Text(type.title)
                             .font(AppTypography.footnote)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
                     }
-                    .frame(minWidth: 64, minHeight: AppSpacing.minTapTarget + 16)
-                    .padding(.horizontal, AppSpacing.sm)
+                    // Flex to equal width so all five share the column and fit
+                    // any split-view size (portrait included) — no overflow.
+                    .frame(maxWidth: .infinity, minHeight: AppSpacing.minTapTarget + 16)
+                    .padding(.horizontal, AppSpacing.xs)
                     .background(AppColors.brandSoft)
                     .foregroundStyle(AppColors.brand)
                     .clipShape(RoundedRectangle(cornerRadius: AppSpacing.chipRadius, style: .continuous))

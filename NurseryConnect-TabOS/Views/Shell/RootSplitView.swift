@@ -82,8 +82,27 @@ struct RootSplitView: View {
             }
         }
         .navigationTitle("NurseryConnect")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) { brandLogo }
+        }
         .listStyle(.sidebar)
         .safeAreaInset(edge: .bottom) { keyworkerFooter }
+    }
+
+    /// Branded wordmark shown in the sidebar's nav bar — a heart logo to the
+    /// left of the app name (calm childcare identity, criterion 7).
+    private var brandLogo: some View {
+        HStack(spacing: AppSpacing.xs) {
+            Image(systemName: "heart.fill")
+                .foregroundStyle(AppColors.brand)
+            Text("NurseryConnect")
+                .font(AppTypography.headline)
+                .foregroundStyle(AppColors.textPrimary)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("NurseryConnect")
+        .accessibilityAddTraits(.isHeader)
     }
 
     private var keyworkerFooter: some View {
@@ -146,7 +165,8 @@ struct RootSplitView: View {
                                    message: "No child matches “\(roster.searchText)”.")
                 case .loaded:
                     List(roster.filteredChildren, selection: bindingSelection(roster)) { child in
-                        ChildRow(child: child)
+                        ChildRow(child: child,
+                                 isSelected: child.id == roster.selectedChildID)
                     }
                     .listStyle(.inset)
                 }
@@ -210,15 +230,17 @@ struct RootSplitView: View {
 
 private struct ChildRow: View {
     let child: Child
+    var isSelected: Bool = false
 
     var body: some View {
         HStack(spacing: AppSpacing.md) {
             ChildAvatar(initials: child.initials, seed: child.avatarSeed)
+                .background(Circle().fill(.white).opacity(isSelected ? 1 : 0))
             VStack(alignment: .leading, spacing: 2) {
                 Text(child.fullName).font(AppTypography.headline)
                 Text("\(child.ageDescription) · \(child.roomName)")
                     .font(AppTypography.footnote)
-                    .foregroundStyle(AppColors.textSecondary)
+                    .foregroundStyle(.secondary)
             }
             Spacer()
             if child.hasAllergies {
@@ -229,6 +251,14 @@ private struct ChildRow: View {
         }
         .padding(.vertical, AppSpacing.xs)
         .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityText)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private var accessibilityText: String {
+        var parts = ["\(child.fullName), \(child.ageDescription), \(child.roomName) room"]
+        if child.hasAllergies { parts.append("has allergies") }
+        return parts.joined(separator: ", ")
     }
 }
 

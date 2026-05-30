@@ -33,16 +33,10 @@ struct InsightsScopeList: View {
 
                     Section {
                         ForEach(viewModel.children) { child in
-                            Label {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(child.fullName).font(AppTypography.headline)
-                                    Text(child.roomName)
-                                        .font(AppTypography.footnote)
-                                        .foregroundStyle(AppColors.textSecondary)
-                                }
-                            } icon: {
-                                ChildAvatar(initials: child.initials, seed: child.avatarSeed, size: 32)
-                            }
+                            InsightsChildRow(
+                                child: child,
+                                isSelected: viewModel.selectedScope == .child(child.id)
+                            )
                             .tag(InsightsScope.child(child.id))
                         }
                     } header: {
@@ -54,5 +48,31 @@ struct InsightsScopeList: View {
         }
         .navigationTitle("Insights")
         .task { if viewModel.state == .idle { viewModel.load() } }
+    }
+}
+
+/// One child in the "By child" scope list. Selection-aware so the row stays
+/// legible on the highlighted (brand-blue) background: the subtitle uses the
+/// semantic `.secondary` style (which inverts to readable white on selection)
+/// and the avatar gets a solid backing so it never blends into the tint.
+private struct InsightsChildRow: View {
+    let child: Child
+    let isSelected: Bool
+
+    var body: some View {
+        Label {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(child.fullName).font(AppTypography.headline)
+                Text(child.roomName)
+                    .font(AppTypography.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        } icon: {
+            ChildAvatar(initials: child.initials, seed: child.avatarSeed, size: 32)
+                .background(Circle().fill(.white).opacity(isSelected ? 1 : 0))
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(child.fullName), \(child.roomName) room")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }

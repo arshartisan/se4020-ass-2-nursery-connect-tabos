@@ -73,10 +73,10 @@ private struct IncidentRow: View {
                     .font(AppTypography.headline)
                 Text("\(report.category.title) · \(report.severity.title)")
                     .font(AppTypography.footnote)
-                    .foregroundStyle(AppColors.textSecondary)
+                    .foregroundStyle(.secondary)
                 Text(report.submittedAt, format: .dateTime.day().month().hour().minute())
                     .font(AppTypography.footnote)
-                    .foregroundStyle(AppColors.textSecondary)
+                    .foregroundStyle(.secondary)
             }
             Spacer()
             DispatchBadge(status: report.dispatchStatus)
@@ -84,6 +84,13 @@ private struct IncidentRow: View {
         .padding(.vertical, AppSpacing.xs)
         .frame(minHeight: 56)
         .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityText)
+    }
+
+    private var accessibilityText: String {
+        let name = report.child?.fullName ?? "Unknown child"
+        return "\(name), \(report.category.title), \(report.severity.title) severity, "
+            + "\(report.dispatchStatus.title)"
     }
 }
 
