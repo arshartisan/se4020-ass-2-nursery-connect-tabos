@@ -27,6 +27,10 @@ final class IncidentReport {
     /// Body-map injury regions (Codable value type stored by SwiftData).
     var bodyMapRegions: [BodyMapRegion]
     var loggedByKeyworker: String
+    /// Keyworker's handwritten sign-off, captured with PencilKit and stored as
+    /// PNG. Externally stored so the binary doesn't bloat the SQLite row. A
+    /// signed record is the human attestation underpinning the audit trail.
+    @Attribute(.externalStorage) var signatureImageData: Data?
     /// Stamped by the system at submission — the immutability anchor.
     var submittedAt: Date
     var dispatchStatusRaw: String
@@ -45,6 +49,7 @@ final class IncidentReport {
         witnesses: String = "",
         bodyMapRegions: [BodyMapRegion] = [],
         loggedByKeyworker: String,
+        signatureImageData: Data? = nil,
         submittedAt: Date = .now,
         dispatchStatus: DispatchStatus = .pending
     ) {
@@ -59,6 +64,7 @@ final class IncidentReport {
         self.witnesses = witnesses
         self.bodyMapRegions = bodyMapRegions
         self.loggedByKeyworker = loggedByKeyworker
+        self.signatureImageData = signatureImageData
         self.submittedAt = submittedAt
         self.dispatchStatusRaw = dispatchStatus.rawValue
     }
